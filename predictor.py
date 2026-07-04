@@ -1,55 +1,77 @@
-team_ratings = {
-    "Los Angeles Dodgers": 96,
-    "Philadelphia Phillies": 94,
-    "New York Yankees": 92,
-    "Detroit Tigers": 90,
-    "Houston Astros": 89,
-    "Chicago Cubs": 88,
-    "New York Mets": 88,
-    "Milwaukee Brewers": 87,
-    "Seattle Mariners": 86,
-    "San Diego Padres": 86,
-    "Toronto Blue Jays": 84,
-    "Texas Rangers": 84,
-    "Tampa Bay Rays": 83,
-    "Boston Red Sox": 83,
-    "San Francisco Giants": 82,
-    "Cincinnati Reds": 81,
-    "St. Louis Cardinals": 81,
-    "Minnesota Twins": 80,
-    "Kansas City Royals": 80,
-    "Cleveland Guardians": 80,
-    "Arizona Diamondbacks": 79,
-    "Los Angeles Angels": 75,
-    "Washington Nationals": 74,
-    "Pittsburgh Pirates": 73,
-    "Miami Marlins": 72,
-    "Athletics": 71,
-    "Baltimore Orioles": 70,
-    "Atlanta Braves": 70,
-    "Chicago White Sox": 65,
-    "Colorado Rockies": 60
-}
+import requests
+
+def get_team_stats():
+    url = "https://statsapi.mlb.com/api/v1/standings?leagueId=103,104"
+    data = requests.get(url).json()
+
+    teams = {}
+
+    for record in data["records"]:
+        for team in record["teamRecords"]:
+
+            name = team["team"]["name"]
+
+            wins = team["wins"]
+            losses = team["losses"]
+            win_pct = float(team["winningPercentage"])
+
+            runs_scored = team["runsScored"]
+            runs_allowed = team["runsAllowed"]
+
+            run_diff = runs_scored - runs_allowed
+
+            teams[name] = {
+                "win_pct": win_pct,
+                "run_diff": run_diff,
+                "wins": wins,
+                "losses": losses
+            }
+
+    return teams
+
 
 def predict_game(home_team, away_team):
-    home_rating = team_ratings.get(home_team, 75) + 3  # Home-field advantage
-    away_rating = team_ratings.get(away_team, 75)
 
-    total = home_rating + away_rating
+    teams = get_team_stats()
 
-    home_pct = round(home_rating / total * 100, 1)
-    away_pct = round(away_rating / total * 100, 1)
+    home = teams.get(home_team)
+    away = teams.get(away_team)
 
-    winner = home_team if home_pct >= away_pct else away_team
-    confidence = round(abs(home_pct - away_pct) / 5 + 5, 1)
+    if not home or not away:
+        return {
+            "error": "Team not found in live MLB data"
+        }
+
+    home_score = home["win_pct"] + (home["run_diff"] * 0.001)
+    away_score = away["win_pct"] + (away["run_diff"] * 0.001)
+
+    # home field advantage
+    home_score += 0.02
+
+    total = home_score + away_score
+
+    home_pct = round((home_score / total) * 100, 1)
+    away_pct = round((away_score / total) * 100, 1)
+
+    if home_pct > away_pct:
+        winner = home_team
+    else:
+        winner = away_team
+
+    confidence = round(abs(home_pct - away_pct) / 10, 1)
 
     reasons = []
 
-    if home_rating > away_rating:
-        reasons.append("Better overall team rating")
-        reasons.append("Home-field advantage")
+    if home["win_pct"] > away["win_pct"]:
+        reasons.append("Better win percentage")
     else:
-        reasons.append("Stronger overall team")
+        reasons.append("Underdog advantage for away team")
+
+    if home["run_diff"] > away["run_diff"]:
+        reasons.append("Better run differential")
+
+    if home_score > away_score:
+        reasons.append("Overall statistical edge")
 
     return {
         "winner": winner,
