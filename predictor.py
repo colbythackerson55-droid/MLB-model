@@ -1,5 +1,4 @@
 import requests
-
 def get_team_stats():
     url = "https://statsapi.mlb.com/api/v1/standings?leagueId=103,104"
     data = requests.get(url).json()
