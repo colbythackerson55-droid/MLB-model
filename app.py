@@ -86,22 +86,25 @@ if st.button("Predict Game"):
     if home_team == away_team:
         st.error("Please select two different teams.")
     else:
-        result = predict_game(home_team, away_team)
+       result = predict_game(home_team, away_team)
 
-st.success("Prediction Complete!")
+if "error" in result:
+    st.error(result["error"])
+else:
+    st.success("Prediction Complete!")
 
-st.markdown("## 🏆 Winner")
-st.write(result["winner"])
+    st.markdown("## 🏆 Winner")
+    st.write(result["winner"])
 
-st.markdown("## 📊 Win Probability")
-st.progress(int(result["home_pct"]))
-st.write(f"**{home_team}: {result['home_pct']}%**")
-st.write(f"**{away_team}: {result['away_pct']}%**")
+    st.markdown("## 📊 Win Probability")
+    st.progress(int(result["home_pct"]))
+    st.write(f"**{home_team}: {result['home_pct']}%**")
+    st.write(f"**{away_team}: {result['away_pct']}%**")
 
-st.markdown("## ⭐ Confidence")
-st.write(f"{result['confidence']} / 10")
+    st.markdown("## ⭐ Confidence")
+    st.write(f"{result['confidence']} / 10")
 
-st.markdown("## 📈 Why")
+    st.markdown("## 📈 Why")
 
-for reason in result["reasons"]:
-    st.write(f"• {reason}")
+    for reason in result["reasons"]:
+        st.write(f"• {reason}")
