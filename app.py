@@ -1,5 +1,5 @@
+from predictor import predict_game
 import streamlit as st
-
 st.set_page_config(
     page_title="Colby's MLB AI",
     page_icon="⚾",
@@ -86,20 +86,22 @@ if st.button("Predict Game"):
     if home_team == away_team:
         st.error("Please select two different teams.")
     else:
-        st.success("Prediction engine coming next!")
+        result = predict_game(home_team, away_team)
 
-        st.markdown("## 🏆 Winner")
-        st.write(home_team)
+st.success("Prediction Complete!")
 
-        st.markdown("## 📊 Win Probability")
-        st.progress(60)
-        st.write(f"**{home_team}: 60%**")
-        st.write(f"**{away_team}: 40%**")
+st.markdown("## 🏆 Winner")
+st.write(result["winner"])
 
-        st.markdown("## ⭐ Confidence")
-        st.write("7.5 / 10")
+st.markdown("## 📊 Win Probability")
+st.progress(int(result["home_pct"]))
+st.write(f"**{home_team}: {result['home_pct']}%**")
+st.write(f"**{away_team}: {result['away_pct']}%**")
 
-        st.markdown("## 📈 Why")
-        st.write("• Better overall team rating")
-        st.write("• Home-field advantage")
-        st.write("• Better recent performance")
+st.markdown("## ⭐ Confidence")
+st.write(f"{result['confidence']} / 10")
+
+st.markdown("## 📈 Why")
+
+for reason in result["reasons"]:
+    st.write(f"• {reason}")
