@@ -34,8 +34,15 @@ def predict_game(home_team, away_team):
 
     teams = get_team_stats()
 
-    home = teams.get(home_team)
-    away = teams.get(away_team)
+  home = None
+away = None
+
+for name in teams:
+    if home_team.lower() in name.lower():
+        home = teams[name]
+
+    if away_team.lower() in name.lower():
+        away = teams[name] 
 
     if not home or not away:
         return {
