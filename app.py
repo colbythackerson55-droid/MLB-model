@@ -1,6 +1,5 @@
 import streamlit as st
 from predictor import predict_game
-
 st.set_page_config(
     page_title="Colby's MLB AI",
     page_icon="⚾",
